@@ -3,8 +3,8 @@ import Combine
 import SwiftUI
 @testable import CombineInheritedObservable
 
-// Test cases for the propagate functionality
-final class ObservableObjectPropagateTests: XCTestCase {
+// Test cases for the broadcast functionality
+final class ObservableObjectBroadcastTests: XCTestCase {
     // Simple child view model
     class TestChildViewModel: ObservableObject {
         @Published var value: Int = 0
@@ -16,17 +16,17 @@ final class ObservableObjectPropagateTests: XCTestCase {
         
         private var cancellables = Set<AnyCancellable>()
         
-        init(autoPropagate: Bool = false) {
+        init(autoBroadcast: Bool = false) {
             self.child = TestChildViewModel()
             
-            if autoPropagate {
+            if autoBroadcast {
                 // Use our extension to bind changes from child to parent
-                child.propagate(objectWillChange: self, store: &cancellables)
+                child.broadcast(objectWillChange: self, store: &cancellables)
             }
         }
     }
     
-    // Basic test showing the default behavior (without propagation)
+    // Basic test showing the default behavior (without broadcasting)
     func testDefaultBehavior() {
         let parent = TestParentViewModel()
         var parentChanged = false
@@ -44,9 +44,9 @@ final class ObservableObjectPropagateTests: XCTestCase {
         cancellable.cancel()
     }
     
-    // Test showing the propagate functionality
-    func testPropagation() {
-        let parent = TestParentViewModel(autoPropagate: true)
+    // Test showing the broadcast functionality
+    func testBroadcasting() {
+        let parent = TestParentViewModel(autoBroadcast: true)
         var parentChanged = false
         
         let cancellable = parent.objectWillChange.sink { _ in
@@ -56,14 +56,14 @@ final class ObservableObjectPropagateTests: XCTestCase {
         // Change child - SHOULD trigger parent change
         parent.child.value += 1
         
-        XCTAssertTrue(parentChanged, "With propagate, child changes should affect parent")
+        XCTAssertTrue(parentChanged, "With broadcast, child changes should affect parent")
         
         // Cleanup
         cancellable.cancel()
     }
     
-    // Test with manual propagation setup (not using constructor)
-    func testManualPropagation() {
+    // Test with manual broadcast setup (not using constructor)
+    func testManualBroadcasting() {
         let parent = TestParentViewModel()
         var parentChanged = false
         var cancellables = Set<AnyCancellable>()
@@ -72,13 +72,13 @@ final class ObservableObjectPropagateTests: XCTestCase {
             parentChanged = true
         }
         
-        // Set up propagation manually
-        parent.child.propagate(objectWillChange: parent, store: &cancellables)
+        // Set up broadcasting manually
+        parent.child.broadcast(objectWillChange: parent, store: &cancellables)
         
         // Change child - SHOULD trigger parent change
         parent.child.value += 1
         
-        XCTAssertTrue(parentChanged, "With manual propagate, child changes should affect parent")
+        XCTAssertTrue(parentChanged, "With manual broadcast, child changes should affect parent")
         
         // Cleanup
         cancellable.cancel()
