@@ -12,8 +12,8 @@ final class ObservableObjectBroadcastTests: XCTestCase {
         }
     }
     class Parent: ObservableObject {
-        @Published private(set) var child: Child
-        @Published private(set) var children: [Child]
+        private(set) var child: Child
+        private(set) var children: [Child]
         
         private var cancellables = Set<AnyCancellable>()
         

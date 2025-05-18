@@ -12,36 +12,36 @@ final class ObservableObjectInheritTests: XCTestCase {
         }
     }
     class Parent: ObservableObject {
-        @Published private(set) var child: Child
-        @Published private(set) var children: [Child]
-        
+        private(set) var child: Child
+        private(set) var children: [Child]
+         
         private var cancellables = Set<AnyCancellable>()
         
         init() {
             self.child = Child()
             self.children = [Child(), Child()]
-            
-            self.inherit(objectWillChange: child, store: &cancellables)
-            self.inherit(objectWillChange: children, store: &cancellables)
+                        
+            self.inherit(objectWillChange: \.child, store: &cancellables)
+            self.inherit(objectWillChange: \.children, store: &cancellables)
         }
     }
     
-    func testInheritance() {
+    func testObservableInheritance() {
         let sut = Parent()
-        var sutChanged = false
+        var sutChangedIndex = 0
         
         let cancellable = sut.objectWillChange
             .sink { _ in
-                sutChanged = true
+                sutChangedIndex += 1
             }
         
         sut.child.increment()
         
-        XCTAssertTrue(sutChanged, "With inherit, child changes should affect parent")
+        XCTAssertEqual(sutChangedIndex, 1, "With inherit, child changes should affect parent")
         cancellable.cancel()
     }
     
-    func testInheritanceArray() {
+    func testObservableArrayInheritance() {
         let sut = Parent()
         var sutChangedIndex = 0
         

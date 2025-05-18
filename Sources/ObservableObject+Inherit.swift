@@ -25,6 +25,13 @@ public extension ObservableObject where Self.ObjectWillChangePublisher == Observ
             }
     }
     
+    func inherit<T: ObservableObject>(
+        objectWillChange keyPath: KeyPath<Self, T>
+    ) -> AnyCancellable {
+        let object = self[keyPath: keyPath]
+        return self.inherit(objectWillChange: object)
+    }
+    
     /// Inherits state change notifications from another observable object and automatically stores the cancellable.
     ///
     /// This is a convenience method that both inherits changes from the other object and stores the resulting
@@ -39,6 +46,14 @@ public extension ObservableObject where Self.ObjectWillChangePublisher == Observ
         store: inout Set<AnyCancellable>
     ) {
         inherit(objectWillChange: other)
+            .store(in: &store)
+    }
+    
+    func inherit<T: ObservableObject>(
+        objectWillChange keyPath: KeyPath<Self, T>,
+        store: inout Set<AnyCancellable>
+    ) {
+        inherit(objectWillChange: keyPath)
             .store(in: &store)
     }
     
@@ -71,6 +86,13 @@ public extension ObservableObject where Self.ObjectWillChangePublisher == Observ
         return inherit(objectWillChange: others)
     }
     
+    func inherit<T: ObservableObject>(
+        objectWillChange keyPath: KeyPath<Self, [T]>
+    ) -> AnyCancellable {
+        let others = self[keyPath: keyPath]
+        return inherit(objectWillChange: others)
+    }
+    
     /// Inherits state change notifications from an array of observable objects and automatically stores the cancellables.
     ///
     /// This is a convenience method that both inherits changes from the array of objects and stores the resulting
@@ -93,5 +115,13 @@ public extension ObservableObject where Self.ObjectWillChangePublisher == Observ
         store: inout Set<AnyCancellable>
     ) {
         inherit(objectWillChange: others, store: &store)
+    }
+    
+    func inherit<T: ObservableObject>(
+        objectWillChange keyPath: KeyPath<Self, [T]>,
+        store: inout Set<AnyCancellable>
+    ) {
+        inherit(objectWillChange: keyPath)
+            .store(in: &store)
     }
 }
