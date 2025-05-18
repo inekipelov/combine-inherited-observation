@@ -26,13 +26,14 @@ let package = Package(
         .target(
             name: "CombineInheritedObservation",
             dependencies: [],
+            path: "Sources",
             linkerSettings: [
                 .linkedFramework("Combine")
             ]),
         .testTarget(
             name: "CombineInheritedObservationTests",
             dependencies: ["CombineInheritedObservation"],
-            path: "Tests/CombineInheritedObservationTests",
+            path: "Tests",
             linkerSettings: [
                 .linkedFramework("Combine")
             ]),
