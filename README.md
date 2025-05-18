@@ -1,9 +1,9 @@
 # CombineInheritedObservation
 
-[![Swift](https://img.shields.io/badge/Swift-5.5+-orange.svg)](https://swift.org)
-[![Platforms](https://img.shields.io/badge/Platforms-iOS%20|%20macOS%20|%20tvOS%20|%20watchOS-blue.svg)](https://www.apple.com)
-[![Swift Package Manager](https://img.shields.io/badge/Swift_Package_Manager-compatible-brightgreen.svg)](https://swift.org/package-manager/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Swift Version](https://img.shields.io/badge/Swift-5.5+-orange.svg)](https://swift.org/)
+[![SPM](https://img.shields.io/badge/SPM-compatible-brightgreen.svg)](https://swift.org/package-manager/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Swift Tests](https://github.com/inekipelov/combine-inherited-observation/actions/workflows/swift.yml/badge.svg)](https://github.com/inekipelov/combine-inherited-observation/actions/workflows/swift.yml)
 
 A lightweight Swift library for hierarchical state management and change propagation in SwiftUI applications using Combine and `ObservableObject` protocol.
 
@@ -19,8 +19,7 @@ This enables efficient state synchronization without boilerplate code, keeping y
 ## Requirements
 
 - Swift 5.5+
-- iOS 13.0+, macOS 10.15+, tvOS 13.0+, watchOS 6.0+
-- Combine framework
+- iOS 13.0+/ macOS 10.15+/ tvOS 13.0+/ watchOS 6.0+
 
 ## Installation
 
@@ -30,7 +29,7 @@ Add the following to your `Package.swift` file:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/username/combine-inherited-observation.git", from: "1.0.0")
+    .package(url: "https://github.com/inekipelov/combine-inherited-observation.git", from: "0.1.0")
 ]
 ```
 
