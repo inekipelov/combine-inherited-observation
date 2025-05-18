@@ -43,3 +43,25 @@ public extension ObservableObject {
             .store(in: &store)
     }
 }
+
+public extension Collection where Element: ObservableObject {
+    func broadcast<T: ObservableObject>(
+        objectWillChange other: T
+    ) -> AnyCancellable where T.ObjectWillChangePublisher == ObservableObjectPublisher {
+        
+        let publishers = map { $0.objectWillChange }
+        return Publishers.MergeMany(publishers)
+            .map { _ in }
+            .sink { [weak other] in
+                other?.objectWillChange.send()
+            }
+    }
+    
+    func broadcast<T: ObservableObject>(
+        objectWillChange other: T,
+        store: inout Set<AnyCancellable>
+    ) where T.ObjectWillChangePublisher == ObservableObjectPublisher {
+        broadcast(objectWillChange: other)
+            .store(in: &store)
+    }
+}

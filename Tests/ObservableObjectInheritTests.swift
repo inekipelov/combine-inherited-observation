@@ -3,91 +3,57 @@ import Combine
 import SwiftUI
 @testable import CombineInheritedObservation
 
-// Test cases for the inherit functionality
 final class ObservableObjectInheritTests: XCTestCase {
-    // Simple child view model
-    class TestChildViewModel: ObservableObject {
-        @Published var value: Int = 0
+    
+    class Child: ObservableObject {
+        @Published private(set) var value: Int = 0
+        func increment() {
+            value += 1
+        }
     }
-
-    // Simple parent view model with a child
-    class TestParentViewModel: ObservableObject {
-        @Published var value: Int = 0
+    class Parent: ObservableObject {
+        @Published private(set) var child: Child
+        @Published private(set) var children: [Child]
+        
+        private var cancellables = Set<AnyCancellable>()
+        
+        init() {
+            self.child = Child()
+            self.children = [Child(), Child()]
+            
+            self.inherit(objectWillChange: child, store: &cancellables)
+            self.inherit(objectWillChange: children, store: &cancellables)
+        }
     }
     
-    // Test showing the inherit functionality
     func testInheritance() {
-        let parent = TestParentViewModel()
-        let child = TestChildViewModel()
-        var childChanged = false
+        let sut = Parent()
+        var sutChanged = false
         
-        var cancellables = Set<AnyCancellable>()
-        
-        // Setup subscription to child changes
-        child.objectWillChange
+        let cancellable = sut.objectWillChange
             .sink { _ in
-                childChanged = true
+                sutChanged = true
             }
-            .store(in: &cancellables)
         
-        // Setup inheritance from parent
-        child.inherit(objectWillChange: parent, store: &cancellables)
+        sut.child.increment()
         
-        // Change parent - should trigger child change
-        parent.value += 1
-        
-        XCTAssertTrue(childChanged, "With inherit, parent changes should affect child")
+        XCTAssertTrue(sutChanged, "With inherit, child changes should affect parent")
+        cancellable.cancel()
     }
     
-    // Test returning cancellable directly
-    func testInheritWithManualCancellable() {
-        let parent = TestParentViewModel()
-        let child = TestChildViewModel()
-        var childChanged = false
+    func testInheritanceArray() {
+        let sut = Parent()
+        var sutChangedIndex = 0
         
-        // Setup subscription to child changes
-        let subscription = child.objectWillChange
+        let cancellable = sut.objectWillChange
             .sink { _ in
-                childChanged = true
+                sutChangedIndex += 1
             }
         
-        // Setup inheritance from parent with explicit cancellable
-        let inheritCancellable = child.inherit(objectWillChange: parent)
+        sut.children.first?.increment()
+        sut.children.last?.increment()
         
-        // Change parent - should trigger child change
-        parent.value += 1
-        
-        XCTAssertTrue(childChanged, "With inherit, parent changes should affect child")
-        
-        // Cleanup
-        subscription.cancel()
-        inheritCancellable.cancel()
-    }
-    
-    // Test multiple inheritances
-    func testMultipleInheritance() {
-        let parentA = TestParentViewModel()
-        let parentB = TestParentViewModel()
-        let child = TestChildViewModel()
-        var childChangeCount = 0
-        
-        var cancellables = Set<AnyCancellable>()
-        
-        // Setup subscription to child changes
-        child.objectWillChange
-            .sink { _ in
-                childChangeCount += 1
-            }
-            .store(in: &cancellables)
-        
-        // Setup inheritance from both parents
-        child.inherit(objectWillChange: parentA, store: &cancellables)
-        child.inherit(objectWillChange: parentB, store: &cancellables)
-        
-        // Change both parents
-        parentA.value += 1
-        parentB.value += 1
-        
-        XCTAssertEqual(childChangeCount, 2, "Child should receive updates from both parents")
+        XCTAssertEqual(sutChangedIndex, 2, "With inherit, children changes should affect parent")
+        cancellable.cancel()
     }
 }

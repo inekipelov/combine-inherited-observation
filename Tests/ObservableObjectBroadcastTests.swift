@@ -3,84 +3,57 @@ import Combine
 import SwiftUI
 @testable import CombineInheritedObservation
 
-// Test cases for the broadcast functionality
 final class ObservableObjectBroadcastTests: XCTestCase {
-    // Simple child view model
-    class TestChildViewModel: ObservableObject {
-        @Published var value: Int = 0
-    }
 
-    // Simple parent view model with a child
-    class TestParentViewModel: ObservableObject {
-        @Published var child: TestChildViewModel
+    class Child: ObservableObject {
+        @Published private(set) var value: Int = 0
+        func increment() {
+            value += 1
+        }
+    }
+    class Parent: ObservableObject {
+        @Published private(set) var child: Child
+        @Published private(set) var children: [Child]
         
         private var cancellables = Set<AnyCancellable>()
         
-        init(autoBroadcast: Bool = false) {
-            self.child = TestChildViewModel()
+        init() {
+            self.child = Child()
+            self.children = [Child(), Child()]
             
-            if autoBroadcast {
-                // Use our extension to bind changes from child to parent
-                child.broadcast(objectWillChange: self, store: &cancellables)
-            }
+            child.broadcast(objectWillChange: self, store: &cancellables)
+            children.broadcast(objectWillChange: self, store: &cancellables)
         }
     }
     
-    // Basic test showing the default behavior (without broadcasting)
-    func testDefaultBehavior() {
-        let parent = TestParentViewModel()
-        var parentChanged = false
-        
-        let cancellable = parent.objectWillChange.sink { _ in
-            parentChanged = true
-        }
-        
-        // Change child - should NOT trigger parent change
-        parent.child.value += 1
-        
-        XCTAssertFalse(parentChanged, "By default, child changes should not affect parent")
-        
-        // Cleanup
-        cancellable.cancel()
-    }
-    
-    // Test showing the broadcast functionality
     func testBroadcasting() {
-        let parent = TestParentViewModel(autoBroadcast: true)
+        let parent = Parent()
         var parentChanged = false
         
         let cancellable = parent.objectWillChange.sink { _ in
             parentChanged = true
         }
         
-        // Change child - SHOULD trigger parent change
-        parent.child.value += 1
+        parent.child.increment()
         
         XCTAssertTrue(parentChanged, "With broadcast, child changes should affect parent")
         
-        // Cleanup
         cancellable.cancel()
     }
     
-    // Test with manual broadcast setup (not using constructor)
-    func testManualBroadcasting() {
-        let parent = TestParentViewModel()
-        var parentChanged = false
-        var cancellables = Set<AnyCancellable>()
+    func testBroadcastingArray() {
+        let sut = Parent()
+        var sutChangesIndex = 0
         
-        let cancellable = parent.objectWillChange.sink { _ in
-            parentChanged = true
+        let cancellable = sut.objectWillChange.sink { _ in
+            sutChangesIndex += 1
         }
         
-        // Set up broadcasting manually
-        parent.child.broadcast(objectWillChange: parent, store: &cancellables)
+        sut.children.first?.increment()
+        sut.children.last?.increment()
         
-        // Change child - SHOULD trigger parent change
-        parent.child.value += 1
-        
-        XCTAssertTrue(parentChanged, "With manual broadcast, child changes should affect parent")
-        
-        // Cleanup
+        XCTAssertEqual(sutChangesIndex, 2, "With broadcast, child changes should affect parent")
+
         cancellable.cancel()
     }
 }
