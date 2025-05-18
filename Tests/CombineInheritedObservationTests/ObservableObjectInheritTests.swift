@@ -1,7 +1,7 @@
 import XCTest
 import Combine
 import SwiftUI
-@testable import CombineInheritedObservable
+@testable import CombineInheritedObservation
 
 // Test cases for the inherit functionality
 final class ObservableObjectInheritTests: XCTestCase {
