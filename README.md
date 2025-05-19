@@ -50,8 +50,8 @@ class Child: ObservableObject {
 }
 
 class Parent: ObservableObject {
-    @Published private(set) var child: Child
-    @Published private(set) var children: [Child]
+    private(set) var child: Child
+    private(set) var children: [Child]
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -59,11 +59,14 @@ class Parent: ObservableObject {
         self.child = Child()
         self.children = [Child(), Child()]
         
-        // Parent will notify its observers when child changes
-        self.inherit(objectWillChange: child, store: &cancellables)
+        // Parent will notify its observers when child changes using KeyPath
+        self.inherit(objectWillChange: \.child, store: &cancellables)
         
-        // Parent will notify its observers when any child in the array changes
-        self.inherit(objectWillChange: children, store: &cancellables)
+        // Parent will notify its observers when any child in the array changes using KeyPath
+        self.inherit(objectWillChange: \.children, store: &cancellables)
+        
+        // OR Alternatively, directly pass the object
+        self.inherit(objectWillChange: child, store: &cancellables)
     }
 }
 ```
@@ -75,7 +78,7 @@ let parent = Parent()
 let child = Child()
 
 // Get cancellable back directly instead of storing it
-let inheritCancellable = child.inherit(objectWillChange: parent)
+let inheritCancellable = parent.inherit(objectWillChange: child)
 
 // Later, you can cancel the subscription
 inheritCancellable.cancel()
@@ -94,7 +97,7 @@ class Child: ObservableObject {
 }
 
 class Parent: ObservableObject {
-    @Published private(set) var child: Child
+    private(set) var child: Child
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -112,19 +115,38 @@ class Parent: ObservableObject {
 You can inherit changes from multiple objects at once:
 
 ```swift
-// Inherit from multiple parents
-viewModel.inherit(objectWillChange: parentA, parentB, parentC, store: &cancellables)
+// Inherit from multiple objects using variadic parameters
+let cancellable = parent.inherit(objectWillChange: childA, childB, childC)
 
-// Multiple inheritance with a varargs syntax
-let cancellable = child.inherit(objectWillChange: parentA, parentB, parentC)
+// Inherit from multiple objects with automatic storage
+parent.inherit(objectWillChange: childA, childB, childC, store: &cancellables)
+
+// Inherit from an array of objects
+let childObjects = [childA, childB, childC]
+parent.inherit(objectWillChange: childObjects, store: &cancellables)
 
 // Inheritance with manual count tracking
-var childChangeCount = 0
+var changeCount = 0
 child.objectWillChange
     .sink { _ in
-        childChangeCount += 1
+        changeCount += 1
     }
     .store(in: &cancellables)
+```
+
+### Collection Support
+
+You can also broadcast changes from a collection of observable objects:
+
+```swift
+// Array of observable objects
+let childObjects: [Child] = [Child(), Child(), Child()]
+
+// Broadcast changes from all children to parent
+childObjects.broadcast(objectWillChange: parent, store: &cancellables)
+
+// Get cancellable back directly from collection
+let broadcastCancellable = childObjects.broadcast(objectWillChange: parent)
 ```
 
 ## Benefits

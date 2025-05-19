@@ -45,6 +45,14 @@ public extension ObservableObject {
 }
 
 public extension Collection where Element: ObservableObject {
+    /// Broadcasts state change notifications from all observable objects in the collection to another observable object.
+    ///
+    /// When any object in the collection changes, this method ensures the other object's `objectWillChange` publisher
+    /// is triggered, enabling automatic UI updates in SwiftUI for views observing that object.
+    ///
+    /// - Parameter other: The observable object that will be notified when any object in the collection changes
+    /// - Returns: An `AnyCancellable` instance that can be used to cancel the subscription
+    ///
     func broadcast<T: ObservableObject>(
         objectWillChange other: T
     ) -> AnyCancellable where T.ObjectWillChangePublisher == ObservableObjectPublisher {
@@ -57,6 +65,16 @@ public extension Collection where Element: ObservableObject {
             }
     }
     
+    /// Broadcasts state change notifications from all observable objects in the collection to another observable object
+    /// and automatically stores the cancellable.
+    ///
+    /// This is a convenience method that both broadcasts changes from any object in the collection to the other object 
+    /// and stores the resulting cancellable in the provided set.
+    ///
+    /// - Parameters:
+    ///   - other: The observable object that will be notified when any object in the collection changes
+    ///   - store: The set in which to store the resulting cancellable
+    ///
     func broadcast<T: ObservableObject>(
         objectWillChange other: T,
         store: inout Set<AnyCancellable>
