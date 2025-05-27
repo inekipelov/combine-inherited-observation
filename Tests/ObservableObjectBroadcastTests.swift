@@ -12,47 +12,74 @@ final class ObservableObjectBroadcastTests: XCTestCase {
         }
     }
     class Parent: ObservableObject {
-        private(set) var child: Child
-        private(set) var children: [Child]
-        
-        private var cancellables = Set<AnyCancellable>()
-        
-        init() {
-            self.child = Child()
-            self.children = [Child(), Child()]
-            
-            child.broadcast(objectWillChange: self, store: &cancellables)
-            children.broadcast(objectWillChange: self, store: &cancellables)
-        }
+        private(set) var child: Child = Child()
     }
+    class ParentOfManyChildren: ObservableObject {
+        private(set) var children: [Child] = [Child(), Child()]
+    }
+
     
     func testBroadcasting() {
-        let parent = Parent()
-        var parentChanged = false
+        let sut = Parent()
+        var sutChangesIndex = 0
         
-        let cancellable = parent.objectWillChange.sink { _ in
-            parentChanged = true
-        }
+        let broadcasting = sut.child.broadcast(objectWillChange: sut)
+        let cancellable = sut.objectWillChange
+            .map { 1 }
+            .sink { sutChangesIndex = $0 }
         
-        parent.child.increment()
+        sut.child.increment()
         
-        XCTAssertTrue(parentChanged, "With broadcast, child changes should affect parent")
+        XCTAssertEqual(sutChangesIndex, 1, "With broadcast, child changes should affect parent")
+        
+        cancellable.cancel()
+        broadcasting.cancel()
+    }
+    func testWithoutBroadcasting() {
+        let sut = Parent()
+        var sutChangesIndex = 0
+        
+        let cancellable = sut.objectWillChange
+            .map { 1 }
+            .sink { sutChangesIndex = $0 }
+        
+        sut.child.increment()
+        
+        XCTAssertEqual(sutChangesIndex, 0, "Without broadcast, child changes should NOT affect parent")
         
         cancellable.cancel()
     }
     
     func testBroadcastingArray() {
-        let sut = Parent()
+        let sut = ParentOfManyChildren()
         var sutChangesIndex = 0
         
-        let cancellable = sut.objectWillChange.sink { _ in
-            sutChangesIndex += 1
-        }
+        let broadcasting = sut.children.broadcast(objectWillChange: sut)
+        let cancellable = sut.objectWillChange
+            .map { 1 }
+            .sink { sutChangesIndex += $0 }
         
         sut.children.first?.increment()
         sut.children.last?.increment()
         
         XCTAssertEqual(sutChangesIndex, 2, "With broadcast, child changes should affect parent")
+
+        cancellable.cancel()
+        broadcasting.cancel()
+    }
+    
+    func testWithoutBroadcastingArray() {
+        let sut = ParentOfManyChildren()
+        var sutChangesIndex = 0
+        
+        let cancellable = sut.objectWillChange
+            .map { 1 }
+            .sink { sutChangesIndex += $0 }
+        
+        sut.children.first?.increment()
+        sut.children.last?.increment()
+        
+        XCTAssertEqual(sutChangesIndex, 0, "Without broadcast, child changes should NOT affect parent")
 
         cancellable.cancel()
     }

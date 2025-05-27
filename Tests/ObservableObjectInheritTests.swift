@@ -12,48 +12,71 @@ final class ObservableObjectInheritTests: XCTestCase {
         }
     }
     class Parent: ObservableObject {
-        private(set) var child: Child
-        private(set) var children: [Child]
-         
-        private var cancellables = Set<AnyCancellable>()
-        
-        init() {
-            self.child = Child()
-            self.children = [Child(), Child()]
-                        
-            self.inherit(objectWillChange: \.child, store: &cancellables)
-            self.inherit(objectWillChange: \.children, store: &cancellables)
-        }
+        private(set) var child: Child = Child()
+    }
+    class ParentOfManyChildren: ObservableObject {
+        private(set) var children: [Child] = [Child(), Child()]
     }
     
     func testObservableInheritance() {
         let sut = Parent()
         var sutChangedIndex = 0
         
+        let inheritance = sut.inherit(objectWillChange: \.child)
         let cancellable = sut.objectWillChange
-            .sink { _ in
-                sutChangedIndex += 1
-            }
+            .map { 1 }
+            .sink { sutChangedIndex += $0 }
         
         sut.child.increment()
         
         XCTAssertEqual(sutChangedIndex, 1, "With inherit, child changes should affect parent")
         cancellable.cancel()
+        inheritance.cancel()
     }
     
-    func testObservableArrayInheritance() {
+    func testObservableWithoutInheritance() {
         let sut = Parent()
         var sutChangedIndex = 0
         
         let cancellable = sut.objectWillChange
-            .sink { _ in
-                sutChangedIndex += 1
-            }
+            .map { 1 }
+            .sink { sutChangedIndex += $0 }
+        
+        sut.child.increment()
+        
+        XCTAssertEqual(sutChangedIndex, 0, "Without inherit, child changes should NOT affect parent")
+        cancellable.cancel()
+    }
+    
+    func testObservableArrayInheritance() {
+        let sut = ParentOfManyChildren()
+        var sutChangedIndex = 0
+        
+        let inheritance = sut.inherit(objectWillChange: \.children)
+        let cancellable = sut.objectWillChange
+            .map { 1 }
+            .sink { sutChangedIndex += $0 }
         
         sut.children.first?.increment()
         sut.children.last?.increment()
         
         XCTAssertEqual(sutChangedIndex, 2, "With inherit, children changes should affect parent")
+        cancellable.cancel()
+        inheritance.cancel()
+    }
+    
+    func testObservableArrayWithoutInheritance() {
+        let sut = ParentOfManyChildren()
+        var sutChangedIndex = 0
+        
+        let cancellable = sut.objectWillChange
+            .map { 1 }
+            .sink { sutChangedIndex += $0 }
+        
+        sut.children.first?.increment()
+        sut.children.last?.increment()
+        
+        XCTAssertEqual(sutChangedIndex, 0, "Without inherit, children changes should NOT affect parent")
         cancellable.cancel()
     }
 }
