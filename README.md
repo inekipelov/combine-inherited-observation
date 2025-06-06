@@ -19,7 +19,7 @@ This enables efficient state synchronization without boilerplate code, keeping y
 ## Requirements
 
 - Swift 5.5+
-- iOS 13.0+/ macOS 10.15+/ tvOS 13.0+/ watchOS 6.0+
+- iOS 13.0+ / macOS 10.15+ / tvOS 13.0+ / watchOS 6.0+
 
 ## Installation
 
