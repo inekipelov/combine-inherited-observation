@@ -64,7 +64,7 @@ public extension ObservationBroadcast {
     }
     
     @discardableResult
-    mutating func callAsFunction(newValue: Value) -> Value {
+    mutating func callAsFunction(assign newValue: Value) -> Value {
         _value = newValue
         // setupSubscription() is called automatically via didSet
         return _value

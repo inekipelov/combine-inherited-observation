@@ -44,6 +44,7 @@ final class ObservationBroadcastTests: XCTestCase {
         wait(for: [expectation], timeout: 1.0)
         
         XCTAssertEqual(parentChangeCount, 6, "Parent should receive objectWillChange when child changes multiple times")
+        XCTAssertEqual(parent.child().count, parentChangeCount, "Child count should match parent change count")
         
         cancellable.cancel()
     }
