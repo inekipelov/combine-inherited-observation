@@ -29,7 +29,7 @@ class Parent: ObservableObject {
     )
 }
 
-let parent = TestParent()
+let parent = Parent()
 var isChanged = false
 let cancellable = parent.objectWillChange
     .sink { isChanged = true }
