@@ -14,6 +14,7 @@ A lightweight Swift library for hierarchical state management and change propaga
 ## Usage
 
 ```swift
+import CombineObservationBroadcast
 
 class Child: ObservableObject {
     @Published var count: Int = 0
