@@ -14,9 +14,7 @@ final class ObservationBroadcastTests: XCTestCase {
     }
     
     class TestParent: ObservableObject {
-        private(set) lazy var child = ObservationBroadcast<TestChild, TestParent>(
-            TestChild(), to: self
-        )
+        private(set) lazy var child = ObservationBroadcast(TestChild(), to: self)
     }
     
     // MARK: - Basic Functionality Tests

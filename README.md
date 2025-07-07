@@ -25,9 +25,7 @@ class Child: ObservableObject {
 }
     
 class Parent: ObservableObject {
-    private(set) lazy var child = ObservationBroadcast<Child, Parent>(
-        Child(), to: self
-    )
+    private(set) lazy var child = ObservationBroadcast(Child(), to: self)
 }
 
 let parent = Parent()
