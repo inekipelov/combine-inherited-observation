@@ -1,6 +1,6 @@
 //
 //  ObservableObject+Inherit.swift
-//  CombineInheritedObservation
+//  CombineObservationBroadcast
 //
 
 import Foundation

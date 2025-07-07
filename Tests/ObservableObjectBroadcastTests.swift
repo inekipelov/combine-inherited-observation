@@ -1,7 +1,7 @@
 import XCTest
 import Combine
 import SwiftUI
-@testable import CombineInheritedObservation
+@testable import CombineObservationBroadcast
 
 final class ObservableObjectBroadcastTests: XCTestCase {
 
